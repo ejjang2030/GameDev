@@ -146,8 +146,8 @@ GAPSIZE = 20  # size of gap between boxes in pixels
 BOARDWIDTH = 4  # number of columns of icons
 BOARDHEIGHT = 4  # number of rows of icons
 assert (BOARDWIDTH * BOARDHEIGHT) % 2 == 0, 'Board needs to have an even number of boxes for pairs of matches'
-XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * (card_width + GAPSIZE))) / 2)
-YMARGIN = int((WINDOWHEIGHT - (BOARDHEIGHT * (card_height + GAPSIZE))) / 2)
+XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * (box_width + GAPSIZE))) / 2)
+YMARGIN = int((WINDOWHEIGHT - (BOARDHEIGHT * (box_height + GAPSIZE))) / 2)
 
 pics = []
 for i in range(1, 11):
@@ -577,6 +577,7 @@ def gameWonAnimation():
         clock.tick(60)
 
 
+from rule import *
 
 bg_color = (128, 128, 128)
 black = (0, 0, 0)
@@ -592,11 +593,11 @@ grid_size = 30
 
 fps = 60
 fps_clock = pygame.time.Clock()
-is_show = True
+
 
 def omokGame():
     pygame.init()
-    surface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+    surface = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Omok game")
     surface.fill(bg_color)
 
@@ -697,11 +698,7 @@ class Omok:
     def show_number(self, x, y, stone, number):
         colors = [white, black, red, red]
         color = colors[stone]
-        self.menu.number_show.setText(str(number))
-        self.menu.number_show.setTextColor(color)
-        self.menu.number_show.setTextPosition((x + 15, y + 15))
-        self.menu.number_show.showText()
-        # make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
+        self.menu.make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
 
     def hide_numbers(self):
         for i in range(len(self.coords)):
@@ -812,16 +809,10 @@ class Omok:
 
 
 class Menu(object):
-    is_show = True
-
     def __init__(self, surface):
         self.font = pygame.font.Font('fonts/ELAND_Choice_M.ttf', 20)
         self.surface = surface
         self.draw_menu()
-        self.number_show = TextView(self.surface, None, 'fonts/ELAND_Choice_M.ttf', 20, (0, 0, 0), None, None)
-
-    def return_show_hide(self, omok):
-        yield self.show_hide(omok)
 
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
@@ -850,41 +841,19 @@ class Menu(object):
             rect.center = (left, top)
         else:
             rect.topleft = (left, top)
-        # self.surface.blit(surf, rect)
+        self.surface.blit(surf, rect)
         return rect
 
-    def set_omok(self, omok):
-        self.omok = omok
-
-    def set_button(self, button):
-        self.button = button
-
-    def show_hide(self, omok=None):
+    def show_hide(self, omok):
         top, left = window_height - 90, window_width - 200
-        if self.omok == None:
-            if omok.is_show:
-                self.button.setText("Show Number")
-                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
-                yield omok.hide_numbers()
-                omok.is_show = False
-            else:
-                self.button.setText("Hide Number")
-                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
-                yield omok.show_numbers()
-                omok.is_show = True
+        if omok.is_show:
+            self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
+            omok.hide_numbers()
+            omok.is_show = False
         else:
-            if self.omok.is_show:
-                self.button.setText("Show Number")
-                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
-                self.is_show = False
-                yield self.omok.hide_numbers()
-
-            else:
-                self.button.setText("Hide Number")
-                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
-                self.is_show = True
-                yield omok.show_numbers()
-
+            self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+            omok.show_numbers()
+            omok.is_show = True
 
     def check_rect(self, pos, omok):
         if self.new_rect.collidepoint(pos):
