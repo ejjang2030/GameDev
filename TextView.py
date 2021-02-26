@@ -10,7 +10,8 @@ class TextView:
         self._text_color = text_color
         self._text_position = text_position
         self._text_background = text_background
-        self._text_object = pygame.font.Font(self._text_font, self._text_size)
+        self.text_object = pygame.font.Font(self._text_font, self._text_size)
+        self.text_rect = None
 
     def setSurface(self, surface):
         self._surface = surface
@@ -34,19 +35,19 @@ class TextView:
         self._text_background = text_background
 
     def setTextBold(self):
-        self._text_object.bold = True
+        self.text_object.bold = True
         self.showText()
 
     def setTextItalic(self):
-        self._text_object.italic = True
+        self.text_object.italic = True
         self.showText()
 
     def setTextUnderline(self):
-        self._text_object.underline = True
+        self.text_object.underline = True
         self.showText()
 
     def showText(self):
-        text_render = self._text_object.render(self._text, True, self._text_color, self._text_background)
-        text_rect = text_render.get_rect()
-        text_rect.center = self._text_position
-        self._surface.blit(text_render, text_rect)
+        text_render = self.text_object.render(self._text, True, self._text_color, self._text_background)
+        self.text_rect = text_render.get_rect()
+        self.text_rect.center = self._text_position
+        self._surface.blit(text_render, self.text_rect)

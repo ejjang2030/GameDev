@@ -146,8 +146,8 @@ GAPSIZE = 20  # size of gap between boxes in pixels
 BOARDWIDTH = 4  # number of columns of icons
 BOARDHEIGHT = 4  # number of rows of icons
 assert (BOARDWIDTH * BOARDHEIGHT) % 2 == 0, 'Board needs to have an even number of boxes for pairs of matches'
-XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * (box_width + GAPSIZE))) / 2)
-YMARGIN = int((WINDOWHEIGHT - (BOARDHEIGHT * (box_height + GAPSIZE))) / 2)
+XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * (card_width + GAPSIZE))) / 2)
+YMARGIN = int((WINDOWHEIGHT - (BOARDHEIGHT * (card_height + GAPSIZE))) / 2)
 
 pics = []
 for i in range(1, 11):
@@ -577,7 +577,6 @@ def gameWonAnimation():
         clock.tick(60)
 
 
-from rule import *
 
 bg_color = (128, 128, 128)
 black = (0, 0, 0)
@@ -593,11 +592,11 @@ grid_size = 30
 
 fps = 60
 fps_clock = pygame.time.Clock()
-
+is_show = True
 
 def omokGame():
     pygame.init()
-    surface = pygame.display.set_mode((window_width, window_height))
+    surface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption("Omok game")
     surface.fill(bg_color)
 
@@ -619,9 +618,30 @@ def run_game(surface, omok, menu):
                     if menu.check_rect(event.pos, omok):
                         omok.init_game()
 
-        backButton = Button(surface, "뒤로가기", 20, BLACK, (window_width - 140, window_height // 2), (120, 50),
-                            (0, 0, 255), (0, 100, 255))
-        backButton.onClickListener(selectGame)
+        back_button = Button(surface, "Back", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60 - 60 - 60 - 60 - 60 - 60), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        back_button.onClickListener(menu.back)
+        undo_button = Button(surface, "Undo", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60 - 60 - 60 - 60 - 60), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        undo_button.onClickListener(omok.undo)
+        undoall_button = Button(surface, "Undo All", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60 - 60 - 60 - 60), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        undoall_button.onClickListener(omok.undo_all)
+        redo_button = Button(surface, "Redo", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60 - 60 - 60), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        redo_button.onClickListener(omok.redo)
+        new_button = Button(surface, "New Game", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60 - 60 ), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        new_button.onClickListener(omokGame)
+        menu.set_omok(omok)
+        hide_button = Button(surface, "Show Numbers" if menu.is_show else "Hide numbers", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60 - 60), (180, 50),
+                             (0, 0, 255),
+                             (0, 200, 255), 3)
+        menu.set_button(hide_button)
+        hide_button.onClickListener(menu.show_hide)
+        quit_button = Button(surface, "Quit", 20, (255, 255, 255), (WINDOWWIDTH - 220, WINDOWHEIGHT - 60), (180, 50), (0, 0, 255),
+                             (0, 200, 255), 3)
+        quit_button.onClickListener(menu.terminate)
 
         if omok.is_gameover:
             return
@@ -677,7 +697,11 @@ class Omok:
     def show_number(self, x, y, stone, number):
         colors = [white, black, red, red]
         color = colors[stone]
-        self.menu.make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
+        self.menu.number_show.setText(str(number))
+        self.menu.number_show.setTextColor(color)
+        self.menu.number_show.setTextPosition((x + 15, y + 15))
+        self.menu.number_show.showText()
+        # make_text(self.font, str(number), color, None, y + 15, x + 15, 1)
 
     def hide_numbers(self):
         for i in range(len(self.coords)):
@@ -788,10 +812,16 @@ class Omok:
 
 
 class Menu(object):
+    is_show = True
+
     def __init__(self, surface):
         self.font = pygame.font.Font('fonts/ELAND_Choice_M.ttf', 20)
         self.surface = surface
         self.draw_menu()
+        self.number_show = TextView(self.surface, None, 'fonts/ELAND_Choice_M.ttf', 20, (0, 0, 0), None, None)
+
+    def return_show_hide(self, omok):
+        yield self.show_hide(omok)
 
     def draw_menu(self):
         top, left = window_height - 30, window_width - 200
@@ -820,19 +850,41 @@ class Menu(object):
             rect.center = (left, top)
         else:
             rect.topleft = (left, top)
-        self.surface.blit(surf, rect)
+        # self.surface.blit(surf, rect)
         return rect
 
-    def show_hide(self, omok):
+    def set_omok(self, omok):
+        self.omok = omok
+
+    def set_button(self, button):
+        self.button = button
+
+    def show_hide(self, omok=None):
         top, left = window_height - 90, window_width - 200
-        if omok.is_show:
-            self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
-            omok.hide_numbers()
-            omok.is_show = False
+        if self.omok == None:
+            if omok.is_show:
+                self.button.setText("Show Number")
+                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
+                yield omok.hide_numbers()
+                omok.is_show = False
+            else:
+                self.button.setText("Hide Number")
+                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+                yield omok.show_numbers()
+                omok.is_show = True
         else:
-            self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
-            omok.show_numbers()
-            omok.is_show = True
+            if self.omok.is_show:
+                self.button.setText("Show Number")
+                self.make_text(self.font, 'Show Number', blue, bg_color, top, left)
+                self.is_show = False
+                yield self.omok.hide_numbers()
+
+            else:
+                self.button.setText("Hide Number")
+                self.make_text(self.font, 'Hide Number  ', blue, bg_color, top, left)
+                self.is_show = True
+                yield omok.show_numbers()
+
 
     def check_rect(self, pos, omok):
         if self.new_rect.collidepoint(pos):

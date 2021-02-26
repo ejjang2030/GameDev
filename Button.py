@@ -4,7 +4,7 @@ from TextView import TextView
 
 
 class Button(TextView):
-    def __init__(self, surface, text, text_size, text_color, button_position, button_size, default_color, active_color, border_radius):
+    def __init__(self, surface, text, text_size, text_color, button_position, button_size, default_color, active_color, border_radius=0):
         super().__init__(surface=surface, text=text, text_size=text_size, text_color=text_color)
         self.button_position = button_position
         self.button_size = button_size
