@@ -802,7 +802,7 @@ class Omok:
             return
         elif 5 <= self.rule.is_gameover(x, y, stone):
             self.show_winner_msg(stone)
-            return TrueTrue
+            return True
         return False
 
     def show_winner_msg(self, stone):
