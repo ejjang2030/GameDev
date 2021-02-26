@@ -813,7 +813,6 @@ class Omok:
             pygame.time.delay(200)
         self.menu.show_msg(stone)
 
-
 class Menu(object):
     def __init__(self, surface):
         self.font = pygame.font.Font('fonts/ELAND_Choice_M.ttf', 20)
