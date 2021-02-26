@@ -256,7 +256,6 @@ def runTwoCardFlipGame(surface, board, menu):
             pygame.display.update()
             FPSCLOCK.tick(FPS)
 
-
 # todo : Board객체화(Class화) 마무리하기
 class Board:
     def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size: tuple):
