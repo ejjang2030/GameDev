@@ -1,15 +1,14 @@
-import pygame
 import random
-import sys
 from tkinter import *
-from tkinter import messagebox
 
+import pygame
 from PIL import Image
 from pygame.examples.textinput import BGCOLOR
 from pygame.locals import *
+
 from Button import Button
-from TextView import TextView
 from ImageView import resizeImage
+from TextView import TextView
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -114,6 +113,8 @@ def selectGame():
         twoCardFlipGameButton = Button(screen, "두카드 뒤집기 게임", 20, BLACK,
                                        (WINDOWWIDTH / 2 - button_size[0] / 2, WINDOWHEIGHT / 4 - button_size[1] / 2),
                                        button_size, (255, 255, 0), (255, 255, 200))
+        # todo : 다음 에러 해결하기
+        #  TypeError: runTwoCardFlipGame() missing 3 required positional arguments: 'surface', 'board', and 'menu'
         twoCardFlipGameButton.onClickListener(runTwoCardFlipGame)
         omokGameButton = Button(screen, "오목 게임", 20, BLACK,
                                 (WINDOWWIDTH / 2 - button_size[0] / 2, 2 * WINDOWHEIGHT / 4 - button_size[1] / 2),
@@ -256,6 +257,7 @@ def runTwoCardFlipGame(surface, board, menu):
             FPSCLOCK.tick(FPS)
 
 
+# todo : Board객체화(Class화) 마무리하기
 class Board:
     def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size: tuple):
         self.surface = surface
@@ -732,6 +734,7 @@ class Omok:
         self.id += increase
         self.turn = 3 - self.turn
 
+    # todo : undo 메서드 제대로 작동 안됨
     def undo(self):
         if not self.coords:
             return
@@ -797,10 +800,10 @@ class Omok:
         x, y = self.get_point(coord)
         if self.id > board_size * board_size:
             self.show_winner_msg(stone)
-            return True
+            return
         elif 5 <= self.rule.is_gameover(x, y, stone):
             self.show_winner_msg(stone)
-            return True
+            return TrueTrue
         return False
 
     def show_winner_msg(self, stone):
@@ -867,6 +870,7 @@ class Menu(object):
     def show_hide(self, omok=None):
         global is_show
         top, left = window_height - 90, window_width - 200
+        # todo : flicking(show/hide 번갈아 표시되는 것) 현상 제거하기
         if omok is None:
             if self.omok.is_show:
                 self.omok.is_show = False
