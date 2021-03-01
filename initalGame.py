@@ -113,8 +113,6 @@ def selectGame():
         twoCardFlipGameButton = Button(screen, "두카드 뒤집기 게임", 20, BLACK,
                                        (WINDOWWIDTH / 2 - button_size[0] / 2, WINDOWHEIGHT / 4 - button_size[1] / 2),
                                        button_size, (255, 255, 0), (255, 255, 200))
-        # todo : 다음 에러 해결하기
-        #  TypeError: runTwoCardFlipGame() missing 3 required positional arguments: 'surface', 'board', and 'menu'
         twoCardFlipGameButton.onClickListener(twoCardFlipGame)
         omokGameButton = Button(screen, "오목 게임", 20, BLACK,
                                 (WINDOWWIDTH / 2 - button_size[0] / 2, 2 * WINDOWHEIGHT / 4 - button_size[1] / 2),
@@ -256,8 +254,6 @@ def runTwoCardFlipGame(surface, board, menu):
             pygame.display.update()
             FPSCLOCK.tick(FPS)
 
-
-# todo : Board객체화(Class화) 마무리하기
 class Board:
     def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size_2: tuple):
         self.surface = surface
