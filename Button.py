@@ -2,6 +2,12 @@ import pygame
 import sys
 from TextView import TextView
 
+from enum import Enum
+
+class Pos(Enum):
+    topleft = 0
+    center = 1
+
 
 class Button(TextView):
     def __init__(self, surface, text, text_size, text_color, button_position, button_size, default_color, active_color,

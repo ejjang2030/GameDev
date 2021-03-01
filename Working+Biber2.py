@@ -29,72 +29,72 @@ PURPLE   = (255,   0, 255)
 CYAN     = (  0, 255, 255)
 
 
-pics = ['biber1', 'biber2','biber3','biber4', 'biber5', 'biber6', 'biber7', 'biber8']
+pics = []
+for i in range(1, 11):
+    pics.append('clover' + str(i))
+for i in range(1, 11):
+    pics.append('dia' + str(i))
+for i in range(1, 11):
+    pics.append('heart' + str(i))
+for i in range(1, 11):
+    pics.append('spaid' + str(i))
 
 assert len(ALLCOLORS) * len(ALLSHAPES) * 2 >= BOARDWIDTH * BOARDHEIGHT, "Board is too big for the number of shapes/colors defined."
-
 
 
 def main():
     global FPSCLOCK, DISPLAYSURF
     pygame.init()
     pygame.mixer.init()
-    pygame.mixer.music.load("Brave Heart.wav")
+    pygame.mixer.music.load("musics/twocardgamemusic.mp3")
     pygame.mixer.music.play(-5,0.0)
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
 
-    mousex = 0
-    mousey = 0 #마우스 이벤트 발생 좌표
-    pygame.display.set_caption('Working Biber')
-    pygame.display.set_icon(pygame.image.load('pic/0.png'))
+    mouseX = 0
+    mouseY = 0
+    pygame.display.set_caption('두카드 뒤집기 게임')
+    pygame.display.set_icon(pygame.image.load('images/twoCardFlipImages/back.png'))
     mainBoard = getRandomizedBoard()
     revealedBoxes = generateRevealedBoxesData(False)
 
     firstSelection = None # 첫 클릭 좌표 저장
-    DISPLAYSURF.fill(BGCOLOR)
+    DISPLAYSURF.fill(WHITE)
     startGameAnimation(mainBoard)
-   
-    
 
-
-    while True: #game loof
+    while True:
         mouseClicked = False
 
-        DISPLAYSURF.fill(BGCOLOR) # drow window
+        DISPLAYSURF.fill(WHITE)
         drawBoard(mainBoard, revealedBoxes)
 
-        for event in pygame.event.get(): #이벤트 처리 루프
+        for event in pygame.event.get():
             if event.type == QUIT or (event.type ==KEYUP and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
             elif event.type == MOUSEMOTION:
-                mousex, mousey = event.pos
+                mouseX, mouseY = event.pos
             elif event.type == MOUSEBUTTONUP:
-                mousex, mousey = event.pos
+                mouseX, mouseY = event.pos
                 mouseClicked = True
 
-        boxx, boxy = getBoxAtPixel(mousex, mousey)
-        if boxx != None and boxy != None:
-            # 마우스가 현재 박스 위에 있다.
-            if not revealedBoxes[boxx][boxy]: #닫힌 상자라면 하이라이트만!
-                drawHighlightBox(boxx,boxy)
-            if not revealedBoxes[boxx][boxy] and mouseClicked:
-                revealBoxesAnimation(mainBoard,[(boxx, boxy)])
-                revealedBoxes[boxx][boxy] = True #닫힌 상자+클릭-> 박스 열기
-                if firstSelection ==None : #1번 박스>좌표 기록
-                    firstSelection = (boxx, boxy)
-                else: #1번 박스 아님>2번 박스>짝검사
+        boxX, boxY = getBoxAtPixel(mouseX, mouseY)
+        if boxX is not None and boxY is not None:
+            if not revealedBoxes[boxX][boxY]:
+                drawHighlightBox(boxX,boxY)
+            if not revealedBoxes[boxX][boxY] and mouseClicked:
+                revealBoxesAnimation(mainBoard, [(boxX, boxY)])
+                revealedBoxes[boxX][boxY] = True
+                if firstSelection is None:
+                    firstSelection = (boxX, boxY)
+                else:
                     icon1shape, icon1color = getPicAndNum(mainBoard, firstSelection[0], firstSelection[1])
-                    icon2shape, icon2color = getPicAndNum(mainBoard, boxx, boxy)
-                    if icon1shape !=icon2shape or icon1color != icon2color:
-                        #서로 다름이면 둘 다 닫기
-                        pygame.time.wait(1000) #1000 milliseconds = 1sec
-                        coverBoxesAnimation(mainBoard, [(firstSelection[0], firstSelection[1]), (boxx, boxy)])
-                        revealedBoxes[firstSelection[0]][firstSelection[1]]=False
-                        revealedBoxes[boxx][boxy] =False
-
-                    #짝이면
+                    icon2shape, icon2color = getPicAndNum(mainBoard, boxX, boxY)
+                    if icon1shape is not icon2shape or icon1color is not icon2color:
+                        pygame.time.wait(1000)
+                        coverBoxesAnimation(mainBoard, [(firstSelection[0], firstSelection[1]), (boxX, boxY)])
+                        revealedBoxes[firstSelection[0]][firstSelection[1]] = False
+                        revealedBoxes[boxX][boxY] =False
                     elif hasWon(revealedBoxes):
                        gameWonAnimation(mainBoard)
                        pygame.time.wait(2000)
