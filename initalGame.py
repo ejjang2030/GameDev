@@ -171,11 +171,11 @@ def twoCardFlipGame():
     menu = Menu(surface)
     board = Board(surface, (card_width, card_height), (card_horizontal_gap, card_vertical_gap), (BOARDWIDTH, BOARDHEIGHT))
     while True:
-        runTwoCardFlipGame(surface, board, menu)
+        runTwoCardFlipGame(surface, board)
         menu.is_continue(board)
 
 
-def runTwoCardFlipGame(surface, board, menu):
+def runTwoCardFlipGame(surface, board):
     global FPSCLOCK
     pygame.display.set_caption("두카드 뒤집기 게임")
     pygame.display.set_icon(pygame.image.load("images/twoCardFlipImages/back.png"))
@@ -199,6 +199,19 @@ def runTwoCardFlipGame(surface, board, menu):
 
         surface.fill(WHITE)  # draw window
         board.drawBoard(revealed_boxes)
+
+        againButton = Button(surface, "다시시작", 20, BLACK, (board.surface_width - 140, board.surface_height - 200),
+                             (120, 50),
+                             (0, 255, 0), (0, 255, 100))
+        againButton.onClickListener(twoCardFlipGame)
+        backButton = Button(surface, "뒤로가기", 20, BLACK, (board.surface_width - 140, board.surface_height - 130),
+                            (120, 50),
+                            (0, 0, 255), (0, 100, 255))
+        backButton.onClickListener(back)
+        quitButton = Button(surface, "게임종료", 20, BLACK, (board.surface_width - 140, board.surface_height - 60),
+                            (120, 50),
+                            (255, 0, 0), (255, 100, 0))
+        quitButton.onClickListener(sys.exit)
 
         for event in pygame.event.get():  # 이벤트 처리 루프
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
@@ -253,6 +266,12 @@ def runTwoCardFlipGame(surface, board, menu):
                 # 화면을 다시 그린 다음 시간 지연을 기다린다...
             pygame.display.update()
             FPSCLOCK.tick(FPS)
+
+
+def back():
+    pygame.mixer.music.fadeout(10)
+    selectGame()
+
 
 class Board:
     def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size_2: tuple):
