@@ -1,6 +1,6 @@
 import random
 from tkinter import *
-
+import sys
 import pygame
 from PIL import Image
 from pygame.examples.textinput import BGCOLOR
@@ -188,8 +188,6 @@ def runTwoCardFlipGame(surface, board):
     mouseY = 0  # 마우스 이벤트 발생 좌표
 
     board.setRandomBoard()
-    revealed_boxes = board.generateRevealedBoxesData(False)
-    print(revealed_boxes)
     first_selection = None  # 첫 클릭 좌표 저장
     surface.fill(WHITE)
     board.startGameAnimation()
@@ -198,7 +196,7 @@ def runTwoCardFlipGame(surface, board):
         mouseClicked = False
 
         surface.fill(WHITE)  # draw window
-        board.drawBoard(revealed_boxes)
+        board.drawBoard()
 
         againButton = Button(surface, "다시시작", 20, BLACK, (board.surface_width - 140, board.surface_height - 200),
                              (120, 50),
@@ -226,25 +224,25 @@ def runTwoCardFlipGame(surface, board):
         boxX, boxY = board.getMousePositionOnBoard(mouseX, mouseY)
         if boxX is not None and boxY is not None:
             # 마우스가 현재 박스 위에 있다.
-            if not revealed_boxes[boxX][boxY]:  # 닫힌 상자라면 하이라이트만
+            if not board.revealed_cards[boxX][boxY]:  # 닫힌 상자라면 하이라이트만
                 board.drawHighLightCard(boxX, boxY)
-            if not revealed_boxes[boxX][boxY] and mouseClicked:
-                board.revealBoxesAnimation([(boxX, boxY)])
-                revealed_boxes[boxX][boxY] = True  # 닫힌 상자 + 클릭 -> 박스 열기
+            if not board.revealed_cards[boxX][boxY] and mouseClicked:
+                board.revealCardsAnimation([(boxX, boxY)])
+                board.revealed_cards[boxX][boxY] = True  # 닫힌 상자 + 클릭 -> 박스 열기
                 if first_selection is None:  # 1번 박스 > 좌표 기록
                     first_selection = (boxX, boxY)
                 else:  # 1번 박스 아님 > 2번 박스 > 짝 검사
-                    icon1shape, icon1color = board.getPicAndNum(first_selection[0], first_selection[1])
-                    icon2shape, icon2color = board.getPicAndNum(boxX, boxY)
+                    icon1shape, icon1color = board.getCardAndNum(first_selection[0], first_selection[1])
+                    icon2shape, icon2color = board.getCardAndNum(boxX, boxY)
                     if icon1shape is not icon2shape or icon1color is not icon2color:
                         # 서로 다름이면 둘 다 닫기
                         pygame.time.wait(1000)  # 1초
-                        board.coverBoxesAnimation([(first_selection[0], first_selection[1]), (boxX, boxY)])
-                        revealed_boxes[first_selection[0]][first_selection[1]] = False
-                        revealed_boxes[boxX][boxY] = False
+                        board.coverCardsAnimation([(first_selection[0], first_selection[1]), (boxX, boxY)])
+                        board.revealed_cards[first_selection[0]][first_selection[1]] = False
+                        board.revealed_cards[boxX][boxY] = False
 
                     # 다 오픈되었으면
-                    elif board.hasWon(revealed_boxes):
+                    elif board.hasWon():
                         board.gameWonAnimation()
                         pygame.time.wait(1000)
                         '''
@@ -261,7 +259,7 @@ def runTwoCardFlipGame(surface, board):
                         startGameAnimation(mainBoard)
                         # pygame.mixer.music.play(-5, 0.0)
                         '''
-                    firstSelection = None
+                    first_selection = None
 
                 # 화면을 다시 그린 다음 시간 지연을 기다린다...
             pygame.display.update()
@@ -290,46 +288,51 @@ class Board:
         for n in range(1, 11):
             self.pics.append('spaid' + str(n))
         self.board = self.getRandomBoard()
+        print("mainBoard :", self.board)
         self.x_margin = int((self.surface_width - (self.board_width * (self.card_width + self.card_horizontal_gap))) / 2)
         self.y_margin = int((self.surface_height - (self.board_height * (self.card_height + self.card_vertical_gap))) / 2)
 
-        self.revealed_boxes = []
+        self.revealed_cards = []
 
-    def drawCard(self, card, boxX, boxY):
-        left, top = self.getCardPosition(boxX, boxY)  # 보드 좌표에서 픽셀 좌표 구하기
+    # 문제없음
+    def drawCard(self, card, card_x, card_y):
+        left, top = self.getCardPosition(card_x, card_y)  # 보드 좌표에서 픽셀 좌표 구하기
 
-        # resizeImageAll('clover', box_width, box_height)
-        # resizeImageAll('dia', box_width, box_height)
-        # resizeImageAll('heart', box_width, box_height)
-        # resizeImageAll('spaid', box_width, box_height)
+        self.resizeImageAll('clover')
+        self.resizeImageAll('dia')
+        self.resizeImageAll('heart')
+        self.resizeImageAll('spaid')
 
-        cloverImg = self.makeCards('clover', self.card_width, self.card_height)
-        diaImg = self.makeCards('dia', self.card_width, self.card_height)
-        heartImg = self.makeCards('heart', self.card_width, self.card_height)
-        spaidImg = self.makeCards('spaid', self.card_width, self.card_height)
+        cloverImg = self.makeCards('clover')
+        diaImg = self.makeCards('dia')
+        heartImg = self.makeCards('heart')
+        spaidImg = self.makeCards('spaid')
 
         self.showCards(cloverImg, card, 'clover', left, top)
         self.showCards(diaImg, card, 'dia', left, top)
         self.showCards(heartImg, card, 'heart', left, top)
         self.showCards(spaidImg, card, 'spaid', left, top)
 
+    # 문제없음
     def showCards(self, image_list, pic, name, left, top):
         for n in range(1, 11):
             if pic == name + str(n):
                 self.surface.blit(image_list[n], (left, top))
 
+    # 문제없음
     def getCardPosition(self, boxX, boxY):
         # 좌표를 픽셀 좌표로 변환
         left = boxX * (self.card_width + self.card_horizontal_gap) + self.x_margin
         top = boxY * (self.card_height + self.card_vertical_gap) + self.y_margin
         return left, top
 
-    def drawBoard(self, revealed):
+    # 문제 없음
+    def drawBoard(self):
+        print("drawBoard :", self.revealed_cards)
         for boxX in range(self.board_width):
             for boxY in range(self.board_height):
                 left, top = self.getCardPosition(boxX, boxY)
-                print(boxX, boxY)
-                if not revealed[boxX][boxY]:
+                if not self.revealed_cards[boxX][boxY]:
                     # 닫힌 상자를 만든다.
                     resizeImage('images/twoCardFlipImages', 'back', self.card_width, self.card_height)
                     back_of_card = pygame.image.load(
@@ -340,17 +343,18 @@ class Board:
                     pygame.draw.rect(self.surface, (255, 255, 255), back_of_card_rect, 1)
                 else:
                     # 열린 상자
-                    card, num = self.getPicAndNum(boxX, boxY)
+                    card, num = self.getCardAndNum(boxX, boxY)
                     self.drawCard(card, boxX, boxY)
 
-    def drawBoxCovers(self, board, boxes, coverage):
+    # 문제없음
+    def drawBoxCovers(self, boxes, coverage):
         global FPSCLOCK
         # 닫히겨나 열린 상태의 상자를 그린다.
         # 상자는 요소 2개를 가진 리스트이며 xy 위치를 가진다.
         for box in boxes:
             left, top = self.getCardPosition(box[0], box[1])
             pygame.draw.rect(self.surface, BGCOLOR, (left, top, self.card_width, self.card_height))
-            card, num = self.getPicAndNum(box[0], box[1])
+            card, num = self.getCardAndNum(box[0], box[1])
             self.drawCard(card, box[0], box[1])
             if coverage > 0:  # 닫힌 상태이면, 덮개만:
                 resizeImage('images/twoCardFlipImages', 'back', self.card_width, self.card_height)
@@ -362,14 +366,29 @@ class Board:
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
-    def getPicAndNum(self, boxX, boxY):
+    # 문제없음
+    def revealCardsAnimation(self, cards_to_reveal):
+        # 상자가 열려요
+        for coverage in range(BOXSIZE, (-REVEALSPEED) - 1, -REVEALSPEED):
+            self.drawBoxCovers(cards_to_reveal, coverage)
+
+    # 문제없음
+    def coverCardsAnimation(self, cards_to_cover):
+        # 상자가 닫혀요
+        for coverage in range(0, BOXSIZE + REVEALSPEED, REVEALSPEED):
+            self.drawBoxCovers(cards_to_cover, coverage)
+
+    # 문제없음
+    def getCardAndNum(self, card_x, card_y):
         # 아이콘 값은 board[x][y][0] 에 있다.
         # 색깔 값은 board[x][y][1]에 있다.
-        return self.board[boxX][boxY][0], self.board[boxX][boxY][1]
+        return self.board[card_x][card_y][0], self.board[card_x][card_y][1]
 
+    # 문제없음
     def setRandomBoard(self):
         self.board = self.getRandomBoard()
 
+    # 문제없음
     def getRandomBoard(self):  # 카드 섞기
         cards = []
         pictures = random.sample(self.pics, int(self.board_width * self.board_height / 2))
@@ -393,6 +412,7 @@ class Board:
         # print(board)
         return board
 
+    # 문제없음
     # getBoxAtPixel을 다음 메서드로 구현
     def getMousePositionOnBoard(self, x, y):
         for boxX in range(self.board_width):
@@ -403,43 +423,50 @@ class Board:
                     return boxX, boxY
         return None, None
 
-    def drawHighLightCard(self, boxX, boxY,  highlight_color=(255, 0, 0)):
-        left, top = self.getCardPosition(boxX, boxY)
+    # 문제없음
+    def drawHighLightCard(self, card_x, card_y,  highlight_color=(255, 0, 0)):
+        left, top = self.getCardPosition(card_x, card_y)
         pygame.draw.rect(self.surface, highlight_color, (left - 5, top - 5, self.card_width + 10, self.card_height + 10), 4)
 
-    # 카드를 다시 엎어놓은 상태를 저장하는 메소드
-    def generateRevealedBoxesData(self, val):
+    # 문제없음
+    # 카드를 엎어놓은 상태를 저장하는 메소드
+    def generateRevealedCardsData(self, val):
         boxes = []  # 열린 상자 만들기
         for n in range(self.board_width):
             boxes.append([val] * self.board_height)
         return boxes
 
+    # 문제없음
+    @staticmethod
+    def splitIntoGroupsOf(group_size, the_list):
+        # 2차원 리스트 생성, 최대로 group_size 만큼의 요소포함
+        result = []
+        for n in range(0, len(the_list), group_size):
+            result.append(the_list[n:n + group_size])
+        return result
+
+    # 문제없음
+    # 게임 시작할 때 일부 카드를 보여주고 시작하는 메서드
     def startGameAnimation(self):
         # 무작위로 상자를 열어서 보여준다.
-        covered_boxes = self.generateRevealedBoxesData(False)
-        boxes = []
+        self.revealed_cards = self.generateRevealedCardsData(False)
+        cards = []
         for x in range(self.board_width):
             for y in range(self.board_height):
-                boxes.append((x, y))
-        random.shuffle(boxes)
-        box_list = random.sample(boxes, 4)
-        box_groups = self.splitIntoGroupsOf(1, box_list)
-        self.drawBoard(covered_boxes)
+                cards.append((x, y))
+        random.shuffle(cards)
+        # 처음 시작할 때 네개만 보여주기
+        count_of_intro_show = 4
+        card_list = random.sample(cards, count_of_intro_show)
+        card_groups = self.splitIntoGroupsOf(1, card_list)
+        self.drawBoard()
 
-        for boxGroup in box_groups:
-            self.revealBoxesAnimation(boxGroup)
-            self.coverBoxesAnimation(boxGroup)
+        for card_group in card_groups:
+            self.revealCardsAnimation(card_group)
+            self.coverCardsAnimation(card_group)
 
-    def revealBoxesAnimation(self, boxesToReveal):
-        # 상자가 열려요
-        for coverage in range(BOXSIZE, (-REVEALSPEED) - 1, -REVEALSPEED):
-            self.drawBoxCovers(self.board, boxesToReveal, coverage)
-
-    def coverBoxesAnimation(self, boxesTocover):
-        # 상자가 닫혀요
-        for coverage in range(0, BOXSIZE + REVEALSPEED, REVEALSPEED):
-            self.drawBoxCovers(self.board, boxesTocover, coverage)
-
+    # 문제없음
+    # 게임이 끝나고 실행하는 메서드
     def gameWonAnimation(self):
         pygame.mixer.music.fadeout(10)
         clock = pygame.time.Clock()
@@ -483,31 +510,26 @@ class Board:
             # 1초에 60번의 빈도로 순환하기
             clock.tick(60)
 
-
+    # 문제없음
     # 카드가 다 뒤집어 졌는지 여부를 판별하는 메소드
-    def hasWon(self, revealedBoxes):
+    def hasWon(self):
         # 모든 상자가 열렸으면 True, 아니면 False
-        for n in revealedBoxes:
+        for n in self.revealed_cards:
             if False in n:
                 return False  # 닫힌게 있으면 False
         return True
 
-    def splitIntoGroupsOf(self, groupSize, theList):
-        # 2차원 리스트 생성, 최대로 groupSize만큼의 요소포함
-        result = []
-        for i in range(0, len(theList), groupSize):
-            result.append(theList[i:i + groupSize])
-        return result
+    # 문제없음
+    def resizeImageAll(self, name):
+        for n in range(1, 11):
+            resizeImage('images/twoCardFlipImages', f'{name}_{n}', self.card_width, self.card_height)
 
-    def resizeImageAll(self, name, width, height):
-        for i in range(1, 11):
-            resizeImage('images/twoCardFlipImages', f'{name}_{i}', width, height)
-
+    # 문제없음
     # 그림 카드 만들기
-    def makeCards(self, name, width, height):
+    def makeCards(self, name):
         img = [None]
         for n in range(1, 11):
-            img.append(pygame.image.load(f'images/twoCardFlipImages/{name}_{n}_{width}x{height}.png'))
+            img.append(pygame.image.load(f'images/twoCardFlipImages/{name}_{n}_{self.card_width}x{self.card_height}.png'))
         return img
 
 
