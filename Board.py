@@ -1,166 +1,15 @@
-from PIL import Image
 import pygame
-from pygame.locals import *
-from Button import Button
-from TextView import TextView
-import sys
 from ImageView import resizeImage
-import random
-from execute import selectGame
-from Window import window_width, window_height
-from Board import Board
+import random, sys
+from TextView import TextView
+from Button import Button
+from execute import selectGame, initTwoCardFlipGame
 
-
+BOXSIZE = 60
+REVEALSPEED = 8
+FPS = 30
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GRAY = (30, 30, 30)
-background_color = WHITE
-screen_width = 1024
-screen_height = 512
-screen_center = window_width / 2, window_height / 3
-
-WHITE = (255, 255, 255)
-
-# 짝 맞추기 게임(두카드 뒤집기 게임)
-# 기본 설정
-FPS = 30  # frames per second, the general speed of the program
-
-REVEALSPEED = 8  # speed boxes' sliding reveals and covers
-backImg = Image.open('images/twoCardFlipImages/back.png')
-card_width = int(backImg.width / 4)
-card_height = int(backImg.height / 4)
-card_horizontal_gap = 20
-card_vertical_gap = 20
-board_width = 4
-board_height = 4
-
-BOXSIZE = 60  # size of box height & width in pixels
-GAPSIZE = 20  # size of gap between boxes in pixels
-BOARDWIDTH = 4  # number of columns of icons
-BOARDHEIGHT = 4  # number of rows of icons
-assert (BOARDWIDTH * BOARDHEIGHT) % 2 == 0, 'Board needs to have an even number of boxes for pairs of matches'
-XMARGIN = int((window_width - (BOARDWIDTH * (card_width + GAPSIZE))) / 2)
-YMARGIN = int((window_height - (BOARDHEIGHT * (card_height + GAPSIZE))) / 2)
-
-pics = []
-for i in range(1, 11):
-    pics.append('clover' + str(i))
-for i in range(1, 11):
-    pics.append('dia' + str(i))
-for i in range(1, 11):
-    pics.append('heart' + str(i))
-for i in range(1, 11):
-    pics.append('spaid' + str(i))
-
-BOXCOLOR = 255, 255, 255  # 파란색
-HIGHLIGHTCOLOR = 255, 0, 0  # 빨간색
-
-
-def initTwoCardFlipGame():
-    pygame.init()
-    surface = pygame.display.set_mode((window_width, window_height))
-    pygame.display.set_caption("두카드 뒤집기 게임")
-    surface.fill(WHITE)
-
-    board = Board(surface, (card_width, card_height), (card_horizontal_gap, card_vertical_gap), (BOARDWIDTH, BOARDHEIGHT))
-    while True:
-        runTwoCardFlipGame(surface, board)
-
-
-def runTwoCardFlipGame(surface, board):
-    global FPSCLOCK
-    pygame.display.set_caption("두카드 뒤집기 게임")
-    pygame.display.set_icon(pygame.image.load("images/twoCardFlipImages/back.png"))
-    pygame.mixer.init()
-    pygame.mixer.music.load("musics/twocardgamemusic.mp3")
-    pygame.mixer.music.play(-5, 0.0)
-    FPSCLOCK = pygame.time.Clock()
-
-    mouseX = 0
-    mouseY = 0  # 마우스 이벤트 발생 좌표
-
-    board.setRandomBoard()
-    first_selection = None  # 첫 클릭 좌표 저장
-    surface.fill(WHITE)
-    board.startGameAnimation()
-
-    while True:  # game loop
-        mouseClicked = False
-
-        surface.fill(WHITE)  # draw window
-        board.drawBoard()
-
-        again_button = Button(surface, "다시시작", 20, BLACK, (board.surface_width - 140, board.surface_height - 200),
-                             (120, 50),
-                             (0, 255, 0), (0, 255, 100), 5)
-        again_button.onClickListener(initTwoCardFlipGame)
-        back_button = Button(surface, "뒤로가기", 20, BLACK, (board.surface_width - 140, board.surface_height - 130),
-                            (120, 50),
-                            (0, 0, 255), (0, 100, 255), 5)
-        back_button.onClickListener(back)
-        quit_button = Button(surface, "게임종료", 20, BLACK, (board.surface_width - 140, board.surface_height - 60),
-                            (120, 50),
-                            (255, 0, 0), (255, 100, 0), 5)
-        quit_button.onClickListener(sys.exit)
-
-        for event in pygame.event.get():  # 이벤트 처리 루프
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
-                pygame.quit()
-                sys.exit()
-            elif event.type == MOUSEMOTION:
-                mouseX, mouseY = event.pos
-            elif event.type == MOUSEBUTTONUP:
-                mouseX, mouseY = event.pos
-                mouseClicked = True
-
-        boxX, boxY = board.getMousePositionOnBoard(mouseX, mouseY)
-        if boxX is not None and boxY is not None:
-            # 마우스가 현재 박스 위에 있다.
-            if not board.revealed_cards[boxX][boxY]:  # 닫힌 상자라면 하이라이트만
-                board.drawHighLightCard(boxX, boxY)
-            if not board.revealed_cards[boxX][boxY] and mouseClicked:
-                board.revealCardsAnimation([(boxX, boxY)])
-                board.revealed_cards[boxX][boxY] = True  # 닫힌 상자 + 클릭 -> 박스 열기
-                if first_selection is None:  # 1번 박스 > 좌표 기록
-                    first_selection = (boxX, boxY)
-                else:  # 1번 박스 아님 > 2번 박스 > 짝 검사
-                    icon1shape, icon1color = board.getCardAndNum(first_selection[0], first_selection[1])
-                    icon2shape, icon2color = board.getCardAndNum(boxX, boxY)
-                    if icon1shape is not icon2shape or icon1color is not icon2color:
-                        # 서로 다름이면 둘 다 닫기
-                        pygame.time.wait(1000)  # 1초
-                        board.coverCardsAnimation([(first_selection[0], first_selection[1]), (boxX, boxY)])
-                        board.revealed_cards[first_selection[0]][first_selection[1]] = False
-                        board.revealed_cards[boxX][boxY] = False
-
-                    # 다 오픈되었으면
-                    elif board.hasWon():
-                        board.gameWonAnimation()
-                        pygame.time.wait(1000)
-                        '''
-                        # 게임판 재설정
-                        mainBoard = getRandomizedBoard()
-                        revealedBoxes = generateRevealedBoxesData(False)
-
-                        # 잠깐 공개
-                        drawBoard(mainBoard, revealedBoxes)
-                        pygame.display.update()
-                        pygame.time.wait(1000)
-
-                        # 게임 시작
-                        startGameAnimation(mainBoard)
-                        # pygame.mixer.music.play(-5, 0.0)
-                        '''
-                    first_selection = None
-
-                # 화면을 다시 그린 다음 시간 지연을 기다린다...
-            pygame.display.update()
-            FPSCLOCK.tick(FPS)
-
-
-def back():
-    pygame.mixer.music.fadeout(10)
-    selectGame()
 
 
 class Board:
@@ -421,8 +270,3 @@ class Board:
             if False in n:
                 return False  # 닫힌게 있으면 False
         return True
-
-
-if __name__ == "__main__":
-    initTwoCardFlipGame()
-
