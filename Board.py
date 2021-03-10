@@ -13,25 +13,25 @@ BLACK = (0, 0, 0)
 
 
 class Board:
-    def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size_2: tuple):
+    def __init__(self, surface: pygame.Surface, card_size: tuple, card_gap: tuple, board_size: tuple):
         self.surface = surface
         self.surface_width, self.surface_height = self.surface.get_size()
         self.card_width, self.card_height = card_size
         self.card_horizontal_gap, self.card_vertical_gap = card_gap
-        self.board_width, self.board_height = board_size_2
-        self.pics = []
-        for n in range(1, 11):
-            self.pics.append('clover' + str(n))
-        for n in range(1, 11):
-            self.pics.append('dia' + str(n))
-        for n in range(1, 11):
-            self.pics.append('heart' + str(n))
-        for n in range(1, 11):
-            self.pics.append('spaid' + str(n))
+        self.board_width, self.board_height = board_size
+        self.cards = self.setCards()
         self.board = self.getRandomBoard()
         self.x_margin = int((self.surface_width - (self.board_width * (self.card_width + self.card_horizontal_gap))) / 2)
         self.y_margin = int((self.surface_height - (self.board_height * (self.card_height + self.card_vertical_gap))) / 2)
         self.revealed_cards = []
+
+    @staticmethod
+    def setCards():
+        cards = []
+        for s in ['clover', 'dia', 'heart', 'spaid']:
+            for n in range(1, 11):
+                cards.append(s + str(n))
+        return cards
 
     # 문제없음
     def resizeImageAll(self, name):
@@ -122,7 +122,6 @@ class Board:
                 self.surface.blit(back, backRect)
                 pygame.draw.rect(self.surface, (255, 255, 255), backRect, 1)
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
 
     # 문제없음
     def revealCardsAnimation(self, cards_to_reveal):
@@ -143,7 +142,7 @@ class Board:
     # 문제없음
     def getRandomBoard(self):  # 카드 섞기
         cards = []
-        pictures = random.sample(self.pics, int(self.board_width * self.board_height / 2))
+        pictures = random.sample(self.cards, int(self.board_width * self.board_height / 2))
         for pic in pictures:
             cards.append((pic, 1))
             # print(cards)

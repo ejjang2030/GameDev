@@ -25,7 +25,7 @@ def omokGame():
     pygame.init()
     surface = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Omok game")
-    surface.fill(bg_color)
+    surface.fill(white)
 
     omok = Omok(surface)
     menu = Menu(surface)
@@ -128,7 +128,7 @@ class Omok:
                 self.board[y][x] = 0
 
     def draw_board(self):
-        self.surface.blit(self.board_img, (0, 0))
+        self.surface.blit(self.board_img, (window_width // 6, window_height // 6))
 
     def draw_image(self, img_index, x, y):
         img = [self.black_img, self.white_img, self.last_b_img, self.last_w_img]
@@ -196,7 +196,9 @@ class Omok:
     def set_coords(self):
         for y in range(board_size):
             for x in range(board_size):
-                self.pixel_coords.append((x * grid_size + 25, y * grid_size + 25))
+                self.pixel_coords.append((x * grid_size + 25 + window_width // 6, y * grid_size + 25 + window_height // 6))
+
+        print(self.pixel_coords)
 
     def get_coord(self, pos):
         for coord in self.pixel_coords:
@@ -208,8 +210,8 @@ class Omok:
 
     def get_point(self, coord):
         x, y = coord
-        x = (x - 25) // grid_size
-        y = (y - 25) // grid_size
+        x = (x - 25 - window_width // 6) // grid_size
+        y = (y - 25 - window_height // 6) // grid_size
         return x, y
 
     def check_board(self, pos):
@@ -217,6 +219,7 @@ class Omok:
         if not coord:
             return False
         x, y = self.get_point(coord)
+        print(self.board)
         if self.board[y][x] != empty:
             return True
 
@@ -275,7 +278,7 @@ class Menu(object):
             tie: 'Tie',
         }
         center_x = window_width - (window_width - board_width) // 2
-        self.make_text(self.font, msg[msg_id], black, bg_color, 30, center_x, 1)
+        self.make_text(self.font, msg[msg_id], black, white, 130, center_x + 50, 1)
 
     def make_text(self, font, text, color, bgcolor, top, left, position=0, textview=None):
         if textview is None:
@@ -393,3 +396,7 @@ class Rule(object):
             if cnt >= 5:
                 return cnt
         return cnt
+
+
+if __name__ == "__main__":
+    omokGame()

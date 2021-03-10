@@ -1,9 +1,14 @@
+import pygame
+
+
 def initGame():
     import initalGame
     return initalGame.initGame()
 
 
 def selectGame():
+    if pygame.mixer.music.get_busy():
+        pygame.mixer.music.fadeout(10)
     import initalGame
     return initalGame.selectGame()
 

@@ -65,3 +65,12 @@ class Button(TextView):
                 return False
         else:
             return False
+
+    def isMouseOnButton(self) -> bool:
+        mouse_pos = pygame.mouse.get_pos()
+        if self.button_position[0] + self.button_size[0] > mouse_pos[0] > self.button_position[0] and \
+                self.button_position[1] + self.button_size[1] > mouse_pos[1] > \
+                self.button_position[1]:
+            return True
+        else:
+            return False
