@@ -400,3 +400,4 @@ class Rule(object):
 
 if __name__ == "__main__":
     omokGame()
+

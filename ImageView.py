@@ -25,7 +25,7 @@ class ImageView:
         pass
 
 
-def resizeImage(image_folder: str, original_name: str, width: int, height: int):
+def resizeImage(image_folder: str, original_name: str, width: int, height: int, num=0):
     """
     :param image_folder: str -> 이미지 파일 경로('/이미지 이름' 이전의 파일 경로)
     :param original_name: str -> 이미지 이름(확장자 명을 뺀 이름/ .png 파일만 가능)
@@ -36,6 +36,8 @@ def resizeImage(image_folder: str, original_name: str, width: int, height: int):
     image = Image.open(f'{image_folder}/{original_name}.png')
     image_resize = image.resize((width, height))
     image_resize.save(f'{image_folder}/{original_name}_{width}x{height}.png')
+    if num:
+        return f'{image_folder}/{original_name}_{width}x{height}.png'
 
 
 def getImageSize(image_folder: str, image_name: str):
