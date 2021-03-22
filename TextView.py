@@ -16,6 +16,9 @@ class TextView:
     def setSurface(self, surface):
         self._surface = surface
 
+    def getSurface(self):
+        return self._surface
+
     def setText(self, text):
         self._text = text
 
@@ -46,8 +49,11 @@ class TextView:
         self.text_object.underline = True
         self.showText()
 
-    def showText(self):
-        text_render = self.text_object.render(self._text, True, self._text_color, self._text_background)
-        self.text_rect = text_render.get_rect()
-        self.text_rect.center = self._text_position
-        self._surface.blit(text_render, self.text_rect)
+    def showText(self, center=1):
+        self.text_render = self.text_object.render(self._text, True, self._text_color, self._text_background)
+        self.text_rect = self.text_render.get_rect()
+        if center:
+            self.text_rect.center = self._text_position
+        else:
+            self.text_rect.topleft = self._text_position
+        self._surface.blit(self.text_render, self.text_rect)
