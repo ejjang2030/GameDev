@@ -5,7 +5,7 @@ import pygame
 class EditText(TextView):
     def __init__(self, surface, text_size, text_color, default_color, active_color, text_box_size,
                  text_box_position):
-        self.input_text = ''
+        self.input_text = str(0)
         super().__init__(surface=surface, text=self.input_text, text_size=text_size, text_color=text_color)
         self.active = False
         self.text_box_size = text_box_size
@@ -48,4 +48,4 @@ class EditText(TextView):
             self.text_box_color = self.default_color
 
     def resetInputText(self):
-        self.input_text = ''
+        self.input_text = str(0)
