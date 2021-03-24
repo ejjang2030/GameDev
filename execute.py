@@ -26,3 +26,8 @@ def runTwoCardFlipGame():
 def omokGame():
     import omokGame
     return omokGame.omokGame()
+
+
+def initRandomNumberGame():
+    import randomNumberGame
+    return randomNumberGame.initRandomNumberGame()

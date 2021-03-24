@@ -4,7 +4,7 @@ import pygame
 from PIL import Image
 
 from Button import Button
-from execute import initTwoCardFlipGame, omokGame
+from execute import initTwoCardFlipGame, omokGame, initRandomNumberGame
 from Window import window_width, window_height
 
 WHITE = (255, 255, 255)
@@ -136,6 +136,10 @@ def selectGame():
         two_card_flip_game_button.onClickListener(initTwoCardFlipGame)
         omok_game_button = Button(screen, "오목 게임", 20, BLACK, (window_width / 2 - button_size[0] / 2, 2 * window_height / 4 - button_size[1] / 2), button_size, (255, 255, 0), (255, 255, 200))
         omok_game_button.onClickListener(omokGame)
+        random_number_game_button = Button(screen, "랜덤 숫자 게임", 20, BLACK,
+                                  (window_width / 2 - button_size[0] / 2, 3 * window_height / 4 - button_size[1] / 2),
+                                  button_size, (255, 255, 0), (255, 255, 200))
+        random_number_game_button.onClickListener(initRandomNumberGame)
         # 작업한 내용 갱신하기
         pygame.display.flip()
 

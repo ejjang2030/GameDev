@@ -8,6 +8,7 @@ from Button import Button
 from EditText import EditText
 import random
 from TextView import TextView
+from execute import selectGame
 
 BRIGHTBLUE = (0, 50, 255)
 RED = (255, 0, 0)
@@ -20,8 +21,6 @@ BGCOLOR = WHITE
 FPS = 120
 AMPLITUDE = 30
 # 기본 시작 셋업
-pygame.init()
-FPSCLOCK = pygame.time.Clock()
 surface = pygame.display.set_mode((window_width, window_height))
 
 bag = pygame.image.load("images/randomNumberImages/bag_186x218.png")
@@ -58,6 +57,10 @@ class Transfer:
 
     def getValue(self):
         return self.value
+
+class RandomNumberBoard:
+    def __init__(self):
+        pass
 
 def marvelAnimation():
     global latest_marvel_pos_x, latest_marvel_pos_y
@@ -151,50 +154,65 @@ def randomizeNumber():
     number = random.randint(1, 100)
 
 
+def initRandomNumberGame():
+    pygame.init()
+    pygame.display.set_caption("랜덤 숫자 게임")
+    surface.fill(pygame.Color("white"))
+    while True:
+        randomNumberGame()
 
 
+def randomNumberGame():
+    # 메인 루프
+    global show_marvel
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+                pygame.quit()
+                sys.exit()
+            edittext.initEditText(event)
 
-# 메인 루프
-while True:
-    for event in pygame.event.get():
-        if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
-            pygame.quit()
-            sys.exit()
-        edittext.initEditText(event)
 
+        # 배경을 칠합니다.
+        surface.fill(BGCOLOR)
 
-    # 배경을 칠합니다.
-    surface.fill(BGCOLOR)
+        surface.blit(bag, (int(window_width / 3), int(window_height / 8)))
+        mix_button = Button(surface, "숫자 구슬 섞기", 20, (0, 0, 0), (50, int(window_height / 7)), (200, 60), (0, 255, 0),
+                            (0, 255, 100), 4)
+        mix_button.onClickListener(mixAnimation)
+        if mix_button.isButtonClicked():
+            show_marvel = False
+        show_marvel_button = Button(surface, "구슬 꺼내기", 20, (0, 0, 0), (50, 2 * int(window_height / 7) + 20), (200, 60),
+                                    (0, 255, 0), (0, 255, 100), 4)
+        show_marvel_button.onClickListener(marvelAnimation)
+        show_marvel_button.onClickListener(check)
+        if show_marvel_button.isButtonClicked():
+            show_marvel = True
+        if show_marvel:
+            showMarvel()
+        surface.blit(bag, (int(window_width / 3), int(window_height / 8)))
 
-    surface.blit(bag, (int(window_width / 3), int(window_height / 8)))
-    mix_button = Button(surface, "숫자 구슬 섞기", 20, (0, 0, 0), (50, int(window_height / 7)), (200, 60), (0, 255, 0),
-                        (0, 255, 100), 4)
-    mix_button.onClickListener(mixAnimation)
-    if mix_button.isButtonClicked():
-        show_marvel = False
-    show_marvel_button = Button(surface, "구슬 꺼내기", 20, (0, 0, 0), (50, 2 * int(window_height / 7) + 20), (200, 60),
-                                (0, 255, 0), (0, 255, 100), 4)
-    show_marvel_button.onClickListener(marvelAnimation)
-    show_marvel_button.onClickListener(check)
-    if show_marvel_button.isButtonClicked():
-        show_marvel = True
-    if show_marvel:
-        showMarvel()
-    surface.blit(bag, (int(window_width / 3), int(window_height / 8)))
+        edittext.updateTextBoxColor()
+        edittext.showEditTextBox()
+        edittext.text_box_rect.w = max(100, edittext.text_render.get_width() + 10)
 
-    edittext.updateTextBoxColor()
-    edittext.showEditTextBox()
-    edittext.text_box_rect.w = max(100, edittext.text_render.get_width() + 10)
+        typed_number = int(float(edittext.input_text))
+        transfer.setValue(typed_number)
+        check_button = Button(surface, "확인", 20, (0, 0, 0),
+                              (edittext.text_box_rect.x + edittext.text_box_rect.size[0], edittext.text_box_rect.y),
+                              (100, edittext.text_box_rect.size[1] + 1), color_passive, color_active)
+        check_button.onClickListener(check)
+        check_text.showText()
 
-    typed_number = int(float(edittext.input_text))
-    transfer.setValue(typed_number)
-    check_button = Button(surface, "확인", 20, (0, 0, 0),
-                          (edittext.text_box_rect.x + edittext.text_box_rect.size[0], edittext.text_box_rect.y),
-                          (100, edittext.text_box_rect.size[1] + 1), color_passive, color_active)
-    check_button.onClickListener(check)
-    check_text.showText()
+        back_button = Button(surface, "뒤로가기", 20, BLACK, (window_width - 140, window_height - 130),
+                             (120, 50),
+                             (0, 0, 255), (0, 200, 255), 5)
+        back_button.onClickListener(selectGame)
+        quit_button = Button(surface, "게임종료", 20, BLACK, (window_width - 140, window_height - 60),
+                             (120, 50),
+                             (255, 0, 0), (255, 200, 0), 5)
+        quit_button.onClickListener(sys.exit)
 
-    pygame.display.update()
-    FPSCLOCK.tick(FPS)
+        pygame.display.update()
 
 
